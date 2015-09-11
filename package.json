@@ -1,0 +1,26 @@
+{
+  "name": "calc",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A simple calculator demo.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bbuck/calc.git"
+  },
+  "author": "Brandon Buck <buckbe1112@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bbuck/calc/issues"
+  },
+  "homepage": "https://github.com/bbuck/calc#readme",
+  "engines": {
+    "node": ">= 4.0.0"
+  },
+  "dependencies": {
+    "express": "^4.13.3"
+  }
+}
