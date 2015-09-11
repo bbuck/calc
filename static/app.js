@@ -403,7 +403,6 @@
 
 	var CoreButtonClass = "calculator__button--core",
 	    OperationButtonClass = "calculator__button--operation",
-	    NumberButtonClass = "caclulator__button--operation",
 	    ZeroButtonClass = "calculator__button--zero";
 
 	var Calculator = (function (_React$Component) {
@@ -415,18 +414,36 @@
 	    _get(Object.getPrototypeOf(Calculator.prototype), "constructor", this).call(this, props);
 
 	    this.state = {
-	      value: 0,
-	      tempValue: null
+	      value: null,
+	      tempValue: null,
+	      decimal: false,
+	      queuedOperation: null,
+	      clearOnEntry: false
 	    };
 	    this.buttonClicked = this.buttonClicked.bind(this);
 	  }
 
-	  // styles determine rows, this is a linear button layout
+	  // This is the order in which buttons will appear on the calculator. I chose
+	  // not to handle layout at this stage - I will handle layout via styles. This
+	  // simply determines type and order of buttons. Classes added here should be
+	  // in additon to the standard "calculator__button" class for special styles.
+	  // Classes can be a single value or array.
 
 	  _createClass(Calculator, [{
+	    key: "reset",
+	    value: function reset() {
+	      this.setState({
+	        value: null,
+	        tempValue: null,
+	        decimal: false,
+	        queuedOperation: null,
+	        clearOnEntry: false
+	      });
+	    }
+	  }, {
 	    key: "isCleared",
 	    value: function isCleared() {
-	      return this.state.value !== null;
+	      return this.state.value === null;
 	    }
 	  }, {
 	    key: "getBase",
@@ -436,40 +453,84 @@
 	  }, {
 	    key: "buttonClicked",
 	    value: function buttonClicked(type, value) {
-	      var currentValue = this.state.value || 0,
-	          temp = this.state.tempValue;
+	      var _state = this.state;
+	      var currentValue = _state.value;
+	      var temp = _state.tempValue;
+	      var queuedOperation = _state.queuedOperation;
+
+	      currentValue = currentValue || 0;
 	      switch (type) {
 	        case "number":
-	          console.log(currentValue, value);
-	          currentValue = currentValue * this.getBase() + parseInt(value, 10);
-	          this.setState({ value: currentValue });
+	          if (this.state.clearOnEntry) {
+	            currentValue = parseInt(value, this.getBase());
+	          } else {
+	            currentValue = currentValue * this.getBase() + parseInt(value, this.getBase());
+	          }
+	          this.setState({
+	            value: currentValue,
+	            clearOnEntry: false
+	          });
 	          break;
 	        case "op":
-	          if (temp) {
+	          if (!queuedOperation) {
+	            // If no operation already specified, then store current value and
+	            // reset the value, record the requested operation.
 	            this.setState({
-	              value: Calculator.OPERATIONS[value](temp, currentValue),
-	              tempValue: null
+	              value: null,
+	              tempValue: currentValue,
+	              queuedOperation: value,
+	              decimal: false,
+	              clearOnEntry: false
 	            });
 	          } else {
-	            this.setState({
-	              tempValue: currentValue,
-	              value: null
-	            });
+	            this.performQueuedOperation(value);
 	          }
+	          break;
+	        case "action":
+	          Calculator.ACTIONS[value](this);
 	          break;
 	      }
 	    }
 	  }, {
 	    key: "getDisplayValue",
 	    value: function getDisplayValue() {
-	      if (this.state.value) {
-	        var value = this.state.value.toString(this.getBase());
-	        if (this.state.decimal && this.state.value !== Math.floor(this.state.value)) {
+	      if (this.state.value || this.state.decimal) {
+	        var value = this.state.value ? this.state.value.toString(this.getBase()) : "0";
+	        // If the decimal button has been hit and we either have no value, or have a non-decimal value already
+	        // we add a decimal to the output
+	        if (this.state.decimal && (this.state.value === null || this.state.value === Math.floor(this.state.value))) {
 	          value += ".";
 	        }
 	        return value;
 	      } else {
-	        return "0";
+	        return this.state.tempValue ? this.state.tempValue.toString(this.getBase()) : "0";
+	      }
+	    }
+	  }, {
+	    key: "performQueuedOperation",
+	    value: function performQueuedOperation(newOp, setValue) {
+	      setValue = setValue || false;
+	      newOp = newOp || null;
+	      var newState = {
+	        value: null,
+	        tempValue: null,
+	        queuedOperation: newOp,
+	        decimal: false,
+	        clearOnEntry: false
+	      };
+	      if (this.state.queuedOperation) {
+	        var op = Calculator.OPERATIONS[this.state.queuedOperation];
+	        if (setValue) {
+	          newState.value = op(this.state.tempValue, this.state.value);
+	          newState.clearOnEntry = true;
+	        } else {
+	          newState.tempValue = op(this.state.tempValue, this.state.value);
+	        }
+	        this.setState(newState);
+	      } else {
+	        this.setState({
+	          clearOnEntry: true
+	        });
 	      }
 	    }
 	  }, {
@@ -477,7 +538,7 @@
 	    value: function getButtons() {
 	      var _this = this;
 
-	      return Calculator.BUTTON_LAYOUT.map(function (btnData) {
+	      return Calculator.BUTTON_LAYOUT.map(function (btnData, idx) {
 	        var _btnData = _slicedToArray(btnData, 3);
 
 	        var type = _btnData[0];
@@ -502,7 +563,7 @@
 	        }
 	        return React.createElement(
 	          CalculatorButton,
-	          { onClick: _this.buttonClicked, btnType: type, btnValue: value, className: classes },
+	          { key: idx, onClick: _this.buttonClicked, btnType: type, btnValue: value, className: classes },
 	          text
 	        );
 	      });
@@ -510,6 +571,7 @@
 	  }, {
 	    key: "render",
 	    value: function render() {
+	      console.log(this.state);
 	      return React.createElement(
 	        "div",
 	        { className: "calculator" },
@@ -522,8 +584,10 @@
 	  return Calculator;
 	})(React.Component);
 
-	Calculator.BUTTON_LAYOUT = [["action", "clear", CoreButtonClass], ["action", "negate", CoreButtonClass], ["op", "percent", CoreButtonClass], ["op", "div", OperationButtonClass], ["number", 7, NumberButtonClass], ["number", 8, NumberButtonClass], ["number", 9, NumberButtonClass], ["op", "mult", OperationButtonClass], ["number", 4, NumberButtonClass], ["number", 5, NumberButtonClass], ["number", 6, NumberButtonClass], ["op", "sub", OperationButtonClass], ["number", 1, NumberButtonClass], ["number", 2, NumberButtonClass], ["number", 3, NumberButtonClass], ["op", "add", OperationButtonClass], ["number", 0, [NumberButtonClass, ZeroButtonClass]], ["action", "decimal", NumberButtonClass], ["op", "equal", OperationButtonClass]];
+	Calculator.BUTTON_LAYOUT = [["action", "clear", CoreButtonClass], ["action", "negate", CoreButtonClass], ["op", "percent", CoreButtonClass], ["op", "div", OperationButtonClass], ["number", 7], ["number", 8], ["number", 9], ["op", "mult", OperationButtonClass], ["number", 4], ["number", 5], ["number", 6], ["op", "sub", OperationButtonClass], ["number", 1], ["number", 2], ["number", 3], ["op", "add", OperationButtonClass], ["number", 0, ZeroButtonClass], ["action", "decimal"], ["action", "equal", OperationButtonClass]];
 
+	// Maps button names to display values. Possible values are functions that
+	// receive the calculator (for state dependant renderings) or JavaScript values
 	Calculator.BUTTON_MAP = {
 	  clear: function clear(calculator) {
 	    if (calculator.isCleared()) {
@@ -542,27 +606,33 @@
 	  equal: "="
 	};
 
+	// Store operations by name for buttons, adding operatiosn is as easy as
+	// defining new functions
 	Calculator.OPERATIONS = {
 	  add: function add(a, b) {
-	    a + b;
+	    return a + b;
 	  },
 	  sub: function sub(a, b) {
-	    a - b;
+	    return a - b;
 	  },
 	  div: function div(a, b) {
-	    a / b;
+	    return a / b;
 	  },
 	  mult: function mult(a, b) {
-	    a * b;
+	    return a * b;
+	  },
+	  percent: function percent(a, b) {
+	    // what percent a is of b
+	    return a / b * 100;
 	  }
 	};
 
 	Calculator.ACTIONS = {
 	  clear: function clear(calculator) {
-	    if (calculator.cleared) {
+	    if (calculator.isCleared()) {
 	      calculator.reset();
 	    } else {
-	      calcualtor.setState({ value: null });
+	      calculator.setState({ value: null });
 	    }
 	  },
 	  negate: function negate(calculator) {
@@ -570,6 +640,10 @@
 	  },
 	  decimal: function decimal(calculator) {
 	    calculator.setState({ decimal: true });
+	  },
+	  equal: function equal(calculator) {
+	    // no operation to queue, but set value instead of temporary value
+	    calculator.performQueuedOperation(null, true);
 	  }
 	};
 
@@ -20211,7 +20285,6 @@
 	  _createClass(_class, [{
 	    key: "onClick",
 	    value: function onClick() {
-	      console.log(this);
 	      this.props.onClick(this.props.btnType, this.props.btnValue);
 	    }
 	  }, {

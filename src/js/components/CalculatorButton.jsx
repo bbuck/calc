@@ -7,7 +7,6 @@ module.exports = class extends React.Component {
   }
 
   onClick() {
-    console.log(this);
     this.props.onClick(this.props.btnType, this.props.btnValue);
   }
 
