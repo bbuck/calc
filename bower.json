@@ -1,0 +1,22 @@
+{
+  "name": "calc",
+  "private": "true",
+  "version": "1.0.0",
+  "authors": [
+    "Brandon Buck <buckbe1112@gmail.com>"
+  ],
+  "description": "A simple calculator",
+  "main": "server.js",
+  "license": "MIT",
+  "homepage": "https://github.com/bbuck/calc",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "react": "~0.13.3"
+  }
+}
