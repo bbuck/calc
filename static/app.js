@@ -454,22 +454,25 @@
 	    key: "buttonClicked",
 	    value: function buttonClicked(type, value) {
 	      var _state = this.state;
-	      var currentValue = _state.value;
 	      var temp = _state.tempValue;
 	      var queuedOperation = _state.queuedOperation;
-
-	      currentValue = currentValue || 0;
+	      var currentValue = this.getActualValue() || 0;
 	      switch (type) {
 	        case "number":
+	          var newState = undefined;
 	          if (this.state.clearOnEntry) {
 	            currentValue = parseInt(value, this.getBase());
 	          } else {
-	            currentValue = currentValue * this.getBase() + parseInt(value, this.getBase());
+	            currentValue = this.state.value * this.getBase() + parseInt(value, this.getBase());
 	          }
-	          this.setState({
+	          newState = {
 	            value: currentValue,
 	            clearOnEntry: false
-	          });
+	          };
+	          if (this.state.decimal) {
+	            newState.decimal = this.state.decimal * this.getBase();
+	          }
+	          this.setState(newState);
 	          break;
 	        case "op":
 	          if (!queuedOperation) {
@@ -492,16 +495,44 @@
 	      }
 	    }
 	  }, {
+	    key: "setDecimalEntry",
+	    value: function setDecimalEntry() {
+	      if (this.state.clearOnEntry) {
+	        this.setState({
+	          value: null,
+	          decimal: 1,
+	          clearOnEntry: false
+	        });
+	      } else {
+	        this.setState({
+	          decimal: 1
+	        });
+	      }
+	    }
+
+	    // Calculate actual current value (determing if it has a decimal value)
+	  }, {
+	    key: "getActualValue",
+	    value: function getActualValue() {
+	      if (this.state.decimal) {
+	        return this.state.value / this.state.decimal;
+	      } else {
+	        return this.state.value;
+	      }
+	    }
+	  }, {
 	    key: "getDisplayValue",
 	    value: function getDisplayValue() {
-	      if (this.state.value || this.state.decimal) {
-	        var value = this.state.value ? this.state.value.toString(this.getBase()) : "0";
+	      var value = this.getActualValue();
+	      if (value || this.state.decimal) {
+	        var valueStr = value ? value.toString(this.getBase()) : "0";
 	        // If the decimal button has been hit and we either have no value, or have a non-decimal value already
 	        // we add a decimal to the output
-	        if (this.state.decimal && (this.state.value === null || this.state.value === Math.floor(this.state.value))) {
-	          value += ".";
+	        if (this.state.decimal && (value === null || value === Math.floor(value))) {
+	          valueStr += ".";
 	        }
-	        return value;
+
+	        return valueStr;
 	      } else {
 	        return this.state.tempValue ? this.state.tempValue.toString(this.getBase()) : "0";
 	      }
@@ -521,10 +552,10 @@
 	      if (this.state.queuedOperation) {
 	        var op = Calculator.OPERATIONS[this.state.queuedOperation];
 	        if (setValue) {
-	          newState.value = op(this.state.tempValue, this.state.value);
+	          newState.value = op(this.state.tempValue, this.getActualValue());
 	          newState.clearOnEntry = true;
 	        } else {
-	          newState.tempValue = op(this.state.tempValue, this.state.value);
+	          newState.tempValue = op(this.state.tempValue, this.getActualValue());
 	        }
 	        this.setState(newState);
 	      } else {
@@ -632,14 +663,14 @@
 	    if (calculator.isCleared()) {
 	      calculator.reset();
 	    } else {
-	      calculator.setState({ value: null });
+	      calculator.setState({ value: null, decimal: false });
 	    }
 	  },
 	  negate: function negate(calculator) {
 	    calculator.setState({ value: -calculator.state.value });
 	  },
 	  decimal: function decimal(calculator) {
-	    calculator.setState({ decimal: true });
+	    calculator.setDecimalEntry();
 	  },
 	  equal: function equal(calculator) {
 	    // no operation to queue, but set value instead of temporary value

@@ -39,19 +39,24 @@ class Calculator extends React.Component {
   }
 
   buttonClicked(type, value) {
-    let {value: currentValue, tempValue: temp, queuedOperation} = this.state;
-    currentValue = currentValue || 0;
+    let {tempValue: temp, queuedOperation} = this.state,
+        currentValue = this.getActualValue() || 0;
     switch (type) {
       case "number":
+        let newState;
         if (this.state.clearOnEntry) {
           currentValue = parseInt(value, this.getBase());
         } else {
-          currentValue = currentValue * this.getBase() + parseInt(value, this.getBase());
+          currentValue = this.state.value * this.getBase() + parseInt(value, this.getBase());
         }
-        this.setState({
+        newState = {
           value: currentValue,
           clearOnEntry: false
-        });
+        };
+        if (this.state.decimal) {
+          newState.decimal = this.state.decimal * this.getBase();
+        }
+        this.setState(newState);
         break;
       case "op":
         if (!queuedOperation) {
@@ -74,15 +79,40 @@ class Calculator extends React.Component {
     }
   }
 
+  setDecimalEntry() {
+    if (this.state.clearOnEntry) {
+      this.setState({
+        value: null,
+        decimal: 1,
+        clearOnEntry: false
+      });
+    } else {
+      this.setState({
+        decimal: 1
+      });
+    }
+  }
+
+  // Calculate actual current value (determing if it has a decimal value)
+  getActualValue() {
+    if (this.state.decimal) {
+      return this.state.value / this.state.decimal;
+    } else {
+      return this.state.value;
+    }
+  }
+
   getDisplayValue() {
-    if (this.state.value || this.state.decimal) {
-      let value = this.state.value ? this.state.value.toString(this.getBase()) : "0";
+    let value = this.getActualValue();
+    if (value || this.state.decimal) {
+      let valueStr = value ? value.toString(this.getBase()) : "0";
       // If the decimal button has been hit and we either have no value, or have a non-decimal value already
       // we add a decimal to the output
-      if (this.state.decimal && (this.state.value === null || this.state.value === Math.floor(this.state.value))) {
-        value += ".";
+      if (this.state.decimal && (value === null || value === Math.floor(value))) {
+        valueStr += ".";
       }
-      return value;
+
+      return valueStr;
     } else {
       return this.state.tempValue ? this.state.tempValue.toString(this.getBase()) : "0";
     }
@@ -101,10 +131,10 @@ class Calculator extends React.Component {
     if (this.state.queuedOperation) {
       let op = Calculator.OPERATIONS[this.state.queuedOperation];
       if (setValue) {
-        newState.value = op(this.state.tempValue, this.state.value);
+        newState.value = op(this.state.tempValue, this.getActualValue());
         newState.clearOnEntry = true;
       } else {
-        newState.tempValue = op(this.state.tempValue, this.state.value);
+        newState.tempValue = op(this.state.tempValue, this.getActualValue());
       }
       this.setState(newState);
     } else {
@@ -218,14 +248,14 @@ Calculator.ACTIONS = {
     if (calculator.isCleared()) {
       calculator.reset();
     } else {
-      calculator.setState({value: null});
+      calculator.setState({value: null, decimal: false});
     }
   },
   negate(calculator) {
     calculator.setState({value: -calculator.state.value});
   },
   decimal(calculator) {
-    calculator.setState({decimal: true});
+    calculator.setDecimalEntry();
   },
   equal(calculator) {
     // no operation to queue, but set value instead of temporary value
