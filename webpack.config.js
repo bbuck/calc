@@ -6,6 +6,11 @@ module.exports = {
     path: path.join(__dirname, "static"),
     filename: "app.js"
   },
+  resolve: {
+    alias: {
+      react: path.join(__dirname, "bower_components", "react", "react.js")
+    }
+  },
   module: {
     loaders: [
       {test: /\.css$/, loader: "style!css"},

@@ -376,16 +376,18 @@
 
 	"use strict";
 
-	var TestComponent = __webpack_require__(6),
+	var Calculator = __webpack_require__(6),
 	    React = __webpack_require__(7);
 
-	React.render(React.createElement(TestComponent, null), document.querySelector("#calculator"));
+	React.render(React.createElement(Calculator, null), document.querySelector("#calculator"));
 
 /***/ },
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
+
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -395,30 +397,183 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var React = __webpack_require__(7);
+	var React = __webpack_require__(7),
+	    CalculatorButton = __webpack_require__(8),
+	    CalculatorDisplay = __webpack_require__(9);
 
-	module.exports = (function (_React$Component) {
-	  _inherits(_class, _React$Component);
+	var CoreButtonClass = "calculator__button--core",
+	    OperationButtonClass = "calculator__button--operation",
+	    NumberButtonClass = "caclulator__button--operation",
+	    ZeroButtonClass = "calculator__button--zero";
 
-	  function _class() {
-	    _classCallCheck(this, _class);
+	var Calculator = (function (_React$Component) {
+	  _inherits(Calculator, _React$Component);
 
-	    _get(Object.getPrototypeOf(_class.prototype), "constructor", this).apply(this, arguments);
+	  function Calculator(props) {
+	    _classCallCheck(this, Calculator);
+
+	    _get(Object.getPrototypeOf(Calculator.prototype), "constructor", this).call(this, props);
+
+	    this.state = {
+	      value: 0,
+	      tempValue: null
+	    };
+	    this.buttonClicked = this.buttonClicked.bind(this);
 	  }
 
-	  _createClass(_class, [{
+	  // styles determine rows, this is a linear button layout
+
+	  _createClass(Calculator, [{
+	    key: "isCleared",
+	    value: function isCleared() {
+	      return this.state.value !== null;
+	    }
+	  }, {
+	    key: "getBase",
+	    value: function getBase() {
+	      return this.props.base || 10;
+	    }
+	  }, {
+	    key: "buttonClicked",
+	    value: function buttonClicked(type, value) {
+	      var currentValue = this.state.value || 0,
+	          temp = this.state.tempValue;
+	      switch (type) {
+	        case "number":
+	          console.log(currentValue, value);
+	          currentValue = currentValue * this.getBase() + parseInt(value, 10);
+	          this.setState({ value: currentValue });
+	          break;
+	        case "op":
+	          if (temp) {
+	            this.setState({
+	              value: Calculator.OPERATIONS[value](temp, currentValue),
+	              tempValue: null
+	            });
+	          } else {
+	            this.setState({
+	              tempValue: currentValue,
+	              value: null
+	            });
+	          }
+	          break;
+	      }
+	    }
+	  }, {
+	    key: "getDisplayValue",
+	    value: function getDisplayValue() {
+	      if (this.state.value) {
+	        var value = this.state.value.toString(this.getBase());
+	        if (this.state.decimal && this.state.value !== Math.floor(this.state.value)) {
+	          value += ".";
+	        }
+	        return value;
+	      } else {
+	        return "0";
+	      }
+	    }
+	  }, {
+	    key: "getButtons",
+	    value: function getButtons() {
+	      var _this = this;
+
+	      return Calculator.BUTTON_LAYOUT.map(function (btnData) {
+	        var _btnData = _slicedToArray(btnData, 3);
+
+	        var type = _btnData[0];
+	        var value = _btnData[1];
+	        var classes = _btnData[2];
+	        var text = undefined;
+	        if (type !== "number") {
+	          if (typeof Calculator.BUTTON_MAP[value] === "function") {
+	            text = Calculator.BUTTON_MAP[value](_this);
+	          } else {
+	            text = Calculator.BUTTON_MAP[value];
+	          }
+	        } else {
+	          text = value.toString();
+	        }
+	        if (classes) {
+	          if (Array.isArray(classes)) {
+	            classes = classes.join(" ");
+	          }
+	        } else {
+	          classes = "";
+	        }
+	        return React.createElement(
+	          CalculatorButton,
+	          { onClick: _this.buttonClicked, btnType: type, btnValue: value, className: classes },
+	          text
+	        );
+	      });
+	    }
+	  }, {
 	    key: "render",
 	    value: function render() {
 	      return React.createElement(
-	        "h1",
-	        null,
-	        "Hello, World!"
+	        "div",
+	        { className: "calculator" },
+	        React.createElement(CalculatorDisplay, { currentValue: this.getDisplayValue() }),
+	        this.getButtons()
 	      );
 	    }
 	  }]);
 
-	  return _class;
+	  return Calculator;
 	})(React.Component);
+
+	Calculator.BUTTON_LAYOUT = [["action", "clear", CoreButtonClass], ["action", "negate", CoreButtonClass], ["op", "percent", CoreButtonClass], ["op", "div", OperationButtonClass], ["number", 7, NumberButtonClass], ["number", 8, NumberButtonClass], ["number", 9, NumberButtonClass], ["op", "mult", OperationButtonClass], ["number", 4, NumberButtonClass], ["number", 5, NumberButtonClass], ["number", 6, NumberButtonClass], ["op", "sub", OperationButtonClass], ["number", 1, NumberButtonClass], ["number", 2, NumberButtonClass], ["number", 3, NumberButtonClass], ["op", "add", OperationButtonClass], ["number", 0, [NumberButtonClass, ZeroButtonClass]], ["action", "decimal", NumberButtonClass], ["op", "equal", OperationButtonClass]];
+
+	Calculator.BUTTON_MAP = {
+	  clear: function clear(calculator) {
+	    if (calculator.isCleared()) {
+	      return "AC";
+	    } else {
+	      return "C";
+	    }
+	  },
+	  negate: "+/-",
+	  percent: "%",
+	  div: "÷",
+	  mult: "x",
+	  sub: "-",
+	  add: "+",
+	  decimal: ".",
+	  equal: "="
+	};
+
+	Calculator.OPERATIONS = {
+	  add: function add(a, b) {
+	    a + b;
+	  },
+	  sub: function sub(a, b) {
+	    a - b;
+	  },
+	  div: function div(a, b) {
+	    a / b;
+	  },
+	  mult: function mult(a, b) {
+	    a * b;
+	  }
+	};
+
+	Calculator.ACTIONS = {
+	  clear: function clear(calculator) {
+	    if (calculator.cleared) {
+	      calculator.reset();
+	    } else {
+	      calcualtor.setState({ value: null });
+	    }
+	  },
+	  negate: function negate(calculator) {
+	    calculator.setState({ value: -calculator.state.value });
+	  },
+	  decimal: function decimal(calculator) {
+	    calculator.setState({ decimal: true });
+	  }
+	};
+
+	module.exports = Calculator;
 
 /***/ },
 /* 7 */
@@ -20026,6 +20181,91 @@
 
 	},{"114":114}]},{},[1])(1)
 	});
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var React = __webpack_require__(7);
+
+	module.exports = (function (_React$Component) {
+	  _inherits(_class, _React$Component);
+
+	  function _class(props) {
+	    _classCallCheck(this, _class);
+
+	    _get(Object.getPrototypeOf(_class.prototype), "constructor", this).call(this, props);
+	    this.onClick = this.onClick.bind(this);
+	  }
+
+	  _createClass(_class, [{
+	    key: "onClick",
+	    value: function onClick() {
+	      console.log(this);
+	      this.props.onClick(this.props.btnType, this.props.btnValue);
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      return React.createElement(
+	        "button",
+	        { className: this.props.className + " calculator__button", onClick: this.onClick },
+	        this.props.children
+	      );
+	    }
+	  }]);
+
+	  return _class;
+	})(React.Component);
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var React = __webpack_require__(7);
+
+	module.exports = (function (_React$Component) {
+	  _inherits(_class, _React$Component);
+
+	  function _class() {
+	    _classCallCheck(this, _class);
+
+	    _get(Object.getPrototypeOf(_class.prototype), "constructor", this).apply(this, arguments);
+	  }
+
+	  _createClass(_class, [{
+	    key: "render",
+	    value: function render() {
+	      return React.createElement(
+	        "div",
+	        { className: "calculator__display" },
+	        this.props.currentValue
+	      );
+	    }
+	  }]);
+
+	  return _class;
+	})(React.Component);
 
 /***/ }
 /******/ ]);

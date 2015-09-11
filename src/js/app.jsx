@@ -1,4 +1,4 @@
-var TestComponent = require("./TestComponent.jsx"),
-    React = require("../../bower_components/react/react.js");
+var Calculator = require("./components/Calculator.jsx"),
+    React = require("react");
 
-React.render(<TestComponent />, document.querySelector("#calculator"));
+React.render(<Calculator />, document.querySelector("#calculator"));
