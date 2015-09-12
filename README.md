@@ -52,6 +52,12 @@ Install front end dependencies
 bower install
 ```
 
+Compile the assets
+
+```bash
+webpack
+```
+
 Finally you're ready to run the sever!
 
 ```bash
