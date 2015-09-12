@@ -65,8 +65,8 @@
 	if(false) {
 		// When the styles change, update the <style> tags
 		if(!content.locals) {
-			module.hot.accept("!!./../node_modules/css-loader/index.js!./style.css", function() {
-				var newContent = require("!!./../node_modules/css-loader/index.js!./style.css");
+			module.hot.accept("!!./../../node_modules/css-loader/index.js!./../../node_modules/sass-loader/index.js?indentedSyntax!./style.sass", function() {
+				var newContent = require("!!./../../node_modules/css-loader/index.js!./../../node_modules/sass-loader/index.js?indentedSyntax!./style.sass");
 				if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 				update(newContent);
 			});
@@ -84,7 +84,7 @@
 
 
 	// module
-	exports.push([module.id, "background {\n  background-color: black;\n}\n", ""]);
+	exports.push([module.id, ".calculator {\n  width: 235px;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  font-family: 'Helvetica Neue', Helvetica, sans-serif;\n  font-weight: 100;\n  border-radius: 6px;\n  overflow: hidden; }\n\n.calculator__display {\n  width: 235px;\n  height: 75px;\n  background-color: rgba(51, 51, 51, 0.7);\n  position: relative; }\n\n.calculator__display-text {\n  position: absolute;\n  left: 5px;\n  right: 5px;\n  bottom: 5px;\n  text-align: right;\n  color: #ecf0f1;\n  font-size: 2.5rem; }\n\n.calculator__display-text--11-digits {\n  font-size: 2.3rem; }\n\n.calculator__display-text--12-digits {\n  font-size: 1.8rem; }\n\n.calculator__display-text--13-digits {\n  font-size: 1.8rem; }\n\n.calculator__display-text--14-digits {\n  font-size: 1.8rem; }\n\n.calculator__display-text--15-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--16-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--17-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--18-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--19-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--20-digits {\n  font-size: 1.2rem; }\n\n.calculator__button {\n  font-size: 1.5rem;\n  font-family: 'Helvetica Neue', Helvetica, sans-serif;\n  font-weight: 100;\n  width: 58.75px;\n  height: 58.75px;\n  border: none;\n  background-color: #ecf0f1;\n  border-left: solid thin #333;\n  border-bottom: solid thin #333; }\n\n.calculator__button--zero {\n  width: 117.5px;\n  border-bottom-left-radius: 6px;\n  border-right: none; }\n\n.calculator__button:nth-child(4n+5) {\n  border-right: solid thin #333; }\n\n.calculator__button--zero ~ .calculator__button ~ .calculator__button {\n  border-bottom-right-radius: 6px;\n  border-right: solid thin #333; }\n\n.calculator__button--core {\n  background-color: #dde4e6; }\n\n.calculator__button--operation {\n  background-color: #f39c12;\n  color: #ecf0f1; }\n\n* {\n  box-sizing: border-box; }\n", ""]);
 
 	// exports
 
@@ -20360,10 +20360,20 @@
 	  _createClass(_class, [{
 	    key: "render",
 	    value: function render() {
+	      var classes = ["calculator__display-text"],
+	          numLen = this.props.currentValue.toString().length;
+	      if (numLen >= 11) {
+	        classes.push("calculator__display-text--" + numLen + "-digits");
+	      }
+
 	      return React.createElement(
 	        "div",
 	        { className: "calculator__display" },
-	        this.props.currentValue
+	        React.createElement(
+	          "span",
+	          { className: classes.join(" ") },
+	          this.props.currentValue
+	        )
 	      );
 	    }
 	  }]);

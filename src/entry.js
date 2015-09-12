@@ -1,3 +1,3 @@
-require("!style!css!./style.css");
+require("./css/style.sass");
 
 require("./js/app.jsx")
