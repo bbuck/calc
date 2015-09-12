@@ -84,7 +84,7 @@
 
 
 	// module
-	exports.push([module.id, ".calculator {\n  width: 235px;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  font-family: 'Helvetica Neue', Helvetica, sans-serif;\n  font-weight: 100;\n  border-radius: 6px;\n  overflow: hidden; }\n\n.calculator__display {\n  width: 235px;\n  height: 75px;\n  background-color: rgba(51, 51, 51, 0.7);\n  position: relative; }\n\n.calculator__display-text {\n  position: absolute;\n  left: 5px;\n  right: 5px;\n  bottom: 5px;\n  text-align: right;\n  color: #ecf0f1;\n  font-size: 2.5rem; }\n\n.calculator__display-text--11-digits {\n  font-size: 2.3rem; }\n\n.calculator__display-text--12-digits {\n  font-size: 1.8rem; }\n\n.calculator__display-text--13-digits {\n  font-size: 1.8rem; }\n\n.calculator__display-text--14-digits {\n  font-size: 1.8rem; }\n\n.calculator__display-text--15-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--16-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--17-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--18-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--19-digits {\n  font-size: 1.2rem; }\n\n.calculator__display-text--20-digits {\n  font-size: 1.2rem; }\n\n.calculator__button {\n  font-size: 1.5rem;\n  font-family: 'Helvetica Neue', Helvetica, sans-serif;\n  font-weight: 100;\n  width: 58.75px;\n  height: 58.75px;\n  border: none;\n  background-color: #ecf0f1;\n  border-left: solid thin #333;\n  border-bottom: solid thin #333; }\n\n.calculator__button--zero {\n  width: 117.5px;\n  border-bottom-left-radius: 6px;\n  border-right: none; }\n\n.calculator__button:nth-child(4n+5) {\n  border-right: solid thin #333; }\n\n.calculator__button--zero ~ .calculator__button ~ .calculator__button {\n  border-bottom-right-radius: 6px;\n  border-right: solid thin #333; }\n\n.calculator__button--core {\n  background-color: #dde4e6; }\n\n.calculator__button--operation {\n  background-color: #f39c12;\n  color: #ecf0f1; }\n\n* {\n  box-sizing: border-box; }\n", ""]);
+	exports.push([module.id, ".calculator {\n  width: 235px;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  font-family: 'Helvetica Neue', Helvetica, sans-serif;\n  font-weight: 100;\n  border-radius: 6px;\n  overflow: hidden; }\n\n.calculator__display {\n  width: 235px;\n  height: 75px;\n  background-color: rgba(51, 51, 51, 0.7);\n  position: relative; }\n\n.calculator__display-text {\n  position: absolute;\n  left: 5px;\n  right: 5px;\n  bottom: 5px;\n  text-align: right;\n  color: #ecf0f1;\n  font-size: 2.5rem; }\n\n.calculator__display-text--11-digits {\n  font-size: 2.3rem; }\n\n.calculator__display-text--12-digits,\n.calculator__display-text--13-digits,\n.calculator__display-text--14-digits {\n  font-size: 1.8rem; }\n\n.calculator__display-text--15-digits,\n.calculator__display-text--16-digits {\n  font-size: 1.2rem; }\n\n.calculator__button {\n  font-size: 1.5rem;\n  font-family: 'Helvetica Neue', Helvetica, sans-serif;\n  font-weight: 100;\n  width: 58.75px;\n  height: 58.75px;\n  border: none;\n  background-color: #ecf0f1;\n  border-left: solid thin #333;\n  border-bottom: solid thin #333; }\n\n.calculator__button--zero {\n  width: 117.5px;\n  border-bottom-left-radius: 6px;\n  border-right: none; }\n\n.calculator__button:nth-child(4n+5) {\n  border-right: solid thin #333; }\n\n.calculator__button--zero ~ .calculator__button ~ .calculator__button {\n  border-bottom-right-radius: 6px;\n  border-right: solid thin #333; }\n\n.calculator__button--core {\n  background-color: #dde4e6; }\n\n.calculator__button--operation {\n  background-color: #f39c12;\n  color: #ecf0f1; }\n\n* {\n  box-sizing: border-box; }\n", ""]);
 
 	// exports
 
@@ -465,14 +465,16 @@
 	          } else {
 	            currentValue = this.state.value * this.getBase() + parseInt(value, this.getBase());
 	          }
-	          newState = {
-	            value: currentValue,
-	            clearOnEntry: false
-	          };
-	          if (this.state.decimal) {
-	            newState.decimal = this.state.decimal * this.getBase();
+	          if (currentValue <= Number.MAX_SAFE_INTEGER) {
+	            newState = {
+	              value: currentValue,
+	              clearOnEntry: false
+	            };
+	            if (this.state.decimal) {
+	              newState.decimal = this.state.decimal * this.getBase();
+	            }
+	            this.setState(newState);
 	          }
-	          this.setState(newState);
 	          break;
 	        case "op":
 	          if (!queuedOperation) {

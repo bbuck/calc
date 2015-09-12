@@ -41,15 +41,16 @@ $orange: #f39c12
 .calculator__display-text--11-digits
   font-size: 2.3rem
 
-@each $size in 12, 13, 14
-  .calculator__display-text--#{$size}-digits
-    font-size: 1.8rem
+.calculator__display-text--12-digits,
+.calculator__display-text--13-digits,
+.calculator__display-text--14-digits
+  font-size: 1.8rem
 
 // numbers start acting weird after about 16 digits, so I won't worry too much
 // about display sizes above there.
-@each $size in 15, 16, 17, 18, 19, 20
-  .calculator__display-text--#{$size}-digits
-    font-size: 1.2rem
+.calculator__display-text--15-digits,
+.calculator__display-text--16-digits
+  font-size: 1.2rem
 
 .calculator__button
   font-size: 1.5rem

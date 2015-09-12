@@ -49,14 +49,16 @@ class Calculator extends React.Component {
         } else {
           currentValue = this.state.value * this.getBase() + parseInt(value, this.getBase());
         }
-        newState = {
-          value: currentValue,
-          clearOnEntry: false
-        };
-        if (this.state.decimal) {
-          newState.decimal = this.state.decimal * this.getBase();
+        if (currentValue <= Number.MAX_SAFE_INTEGER) {
+          newState = {
+            value: currentValue,
+            clearOnEntry: false
+          };
+          if (this.state.decimal) {
+            newState.decimal = this.state.decimal * this.getBase();
+          }
+          this.setState(newState);
         }
-        this.setState(newState);
         break;
       case "op":
         if (!queuedOperation) {
