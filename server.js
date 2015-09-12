@@ -3,7 +3,7 @@ var express = require("express"),
     path = require("path"),
     app = express();
 
-app.use("/static", express.static("static"));
+app.use("/static", express.static(path.join(__dirname, "static")));
 
 app.get("/", function(req, res) {
   res.sendFile("index.html", {root: __dirname});
@@ -13,5 +13,5 @@ var server = app.listen(3000, function() {
   var host = server.address().address,
       port = server.address().port;
 
-  console.log("Example app listening at http://%s:%s", address, port);
+  console.log("Example app listening at http://%s:%s", host, port);
 });
