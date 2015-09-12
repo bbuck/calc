@@ -17,9 +17,6 @@
     "url": "https://github.com/bbuck/calc/issues"
   },
   "homepage": "https://github.com/bbuck/calc#readme",
-  "engines": {
-    "node": ">= 4.0.0"
-  },
   "dependencies": {
     "express": "^4.13.3"
   },
