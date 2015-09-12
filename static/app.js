@@ -401,9 +401,15 @@
 	    CalculatorButton = __webpack_require__(8),
 	    CalculatorDisplay = __webpack_require__(9);
 
+	// Constantize some button classes for use in the BUTTON_LAYOUT field
 	var CoreButtonClass = "calculator__button--core",
 	    OperationButtonClass = "calculator__button--operation",
 	    ZeroButtonClass = "calculator__button--zero";
+
+	// This rerpesents the core powerhouse component. The Calculator is the central
+	// tie for the internal components that get rendered out. Buttons and the display
+	// do little to no work on their own - most of the work is mixed with this
+	// component and it's modifiers (OPERATIONS and ACTIONS).
 
 	var Calculator = (function (_React$Component) {
 	  _inherits(Calculator, _React$Component);
@@ -413,6 +419,24 @@
 
 	    _get(Object.getPrototypeOf(Calculator.prototype), "constructor", this).call(this, props);
 
+	    // value {Integer?} is our current value, or null when no current value is
+	    //                  present.
+	    // tempValue {Number?} is the previous value calculated during processing.
+	    //                     this field is set when an operation is applied.
+	    // decimal {Number,Boolean} this value is a power of the base, and is used
+	    //                          to convert the strict integer value to a
+	    //                          decimal for display purposes (it was this or a
+	    //                          string, and I opted to keep things numeric). If
+	    //                          the period button has been hit yet this value
+	    //                          is false.
+	    // queuedOperation {String?} since operations happen after at least one
+	    //                           value has been entered, the operation is
+	    //                           queued to be applied later.
+	    // clearOnEntry {Boolean} this is used to denote whether hitting a number
+	    //                        button should clear the display value or add to
+	    //                        it. It's only used when you hit equal so that
+	    //                        this state can accurately been spotted from
+	    //                        others.
 	    this.state = {
 	      value: null,
 	      tempValue: null,
@@ -428,6 +452,9 @@
 	  // simply determines type and order of buttons. Classes added here should be
 	  // in additon to the standard "calculator__button" class for special styles.
 	  // Classes can be a single value or array.
+	  // For information on types see Calculator#buttonClicked
+
+	  // reset simply returns to the default state (as seen in the constructor)
 
 	  _createClass(Calculator, [{
 	    key: "reset",
@@ -440,16 +467,34 @@
 	        clearOnEntry: false
 	      });
 	    }
+
+	    // isCleared returns whether or not the current entered value has been
+	    // cleared or not.
 	  }, {
 	    key: "isCleared",
 	    value: function isCleared() {
 	      return this.state.value === null;
 	    }
+
+	    // getBase returns the base the calculator should be functioning in. I
+	    // honestly did not test other bases so they probably don't render correctly
+	    // and the number input handler probably doesn't handle not standard bases
+	    // but theorectically all number opertions rely on this for base information.
+	    // This is a convience to fetch a supplied base or 10 if no base was
+	    // explicitly set.
 	  }, {
 	    key: "getBase",
 	    value: function getBase() {
 	      return this.props.base || 10;
 	    }
+
+	    // buttonClicked handles all button clicks for the calculator. It varies it's
+	    // functionality via a switch for button types.
+	    //  - "number" buttons represent numberic input buttons
+	    //  - "action" perform none binary or calculator specific behaviors such as
+	    //    clearing the calculator or or negating the current value
+	    //  - "op" buttons represent binary operations on the current and most recent
+	    //    input values.
 	  }, {
 	    key: "buttonClicked",
 	    value: function buttonClicked(type, value) {
@@ -465,6 +510,8 @@
 	          } else {
 	            currentValue = this.state.value * this.getBase() + parseInt(value, this.getBase());
 	          }
+	          // We don't want numbers larger than our maximum safe number - that's
+	          // for sure.
 	          if (currentValue <= Number.MAX_SAFE_INTEGER) {
 	            newState = {
 	              value: currentValue,
@@ -496,6 +543,10 @@
 	          break;
 	      }
 	    }
+
+	    // setDecimalEntry determines the best approach for marking new number
+	    // inputs to be input as decimal values. The only special case is when
+	    // clearOnEntry is true.
 	  }, {
 	    key: "setDecimalEntry",
 	    value: function setDecimalEntry() {
@@ -512,7 +563,9 @@
 	      }
 	    }
 
-	    // Calculate actual current value (determing if it has a decimal value)
+	    // getActualValue will return the decimal value (if a decimal value is
+	    // given) or the value specified. This is here so that the decision and
+	    // calculation is not duplicated where actual values are used.
 	  }, {
 	    key: "getActualValue",
 	    value: function getActualValue() {
@@ -522,6 +575,14 @@
 	        return this.state.value;
 	      }
 	    }
+
+	    // getDisplayValue returns the string representation of the current value.
+	    // There area few special cases, such as when no value is entered "0" should
+	    // be displayed. When a decimal is chosen before numbers are input then
+	    // "0." should be displayed. If you choose to begin entering decimal values
+	    // then then a "." is appended the display number. If there is a temporary
+	    // value but now current value the temporary value is displayed instead
+	    // (useful to see results after operations, without hitting "=")
 	  }, {
 	    key: "getDisplayValue",
 	    value: function getDisplayValue() {
@@ -539,6 +600,12 @@
 	        return this.state.tempValue ? this.state.tempValue.toString(this.getBase()) : "0";
 	      }
 	    }
+
+	    // performQueuedOperation will determine if there is a operation in queue
+	    // and process it. It receives an optional new operation to queue after
+	    // performing the current and a boolean to denote whether to set the results
+	    // as the current value or the temporaryValue (temporary for math operations
+	    // and current value for equality)
 	  }, {
 	    key: "performQueuedOperation",
 	    value: function performQueuedOperation(newOp, setValue) {
@@ -566,6 +633,9 @@
 	        });
 	      }
 	    }
+
+	    // getButtons loops over the BUTTON_LAYOUT and returns CalculatorButton
+	    // button components for ease of rendering.
 	  }, {
 	    key: "getButtons",
 	    value: function getButtons() {
@@ -639,8 +709,9 @@
 	  equal: "="
 	};
 
-	// Store operations by name for buttons, adding operatiosn is as easy as
-	// defining new functions
+	// This maps Operations by names used in button definitions to functions. These
+	// should be binary functions and therefore take an a and b numeric input
+	// and are expected to return numeric input.
 	Calculator.OPERATIONS = {
 	  add: function add(a, b) {
 	    return a + b;
@@ -660,6 +731,10 @@
 	  }
 	};
 
+	// Actions differ slightly from Operations where Operations are binary functions
+	// applied to numeric values operations are calculator functions that change
+	// the state of the calculator. They can affect the numeric properties (such
+	// as negate which just negates the current value).
 	Calculator.ACTIONS = {
 	  clear: function clear(calculator) {
 	    if (calculator.isCleared()) {
@@ -20305,6 +20380,8 @@
 
 	var React = __webpack_require__(7);
 
+	// Represents a button on a calculator. Does not do anything special other than
+	// wrap a click handler passed down to it from a parent.
 	module.exports = (function (_React$Component) {
 	  _inherits(_class, _React$Component);
 
@@ -20350,6 +20427,10 @@
 
 	var React = __webpack_require__(7);
 
+	// Represents the display area for the calculator values and results. It has
+	// pretty basic functioanlity as a simple "display" unit however it does track
+	// number length > 11 to aid in styling smaller fonts for displaying longer
+	// numeric values.
 	module.exports = (function (_React$Component) {
 	  _inherits(_class, _React$Component);
 
